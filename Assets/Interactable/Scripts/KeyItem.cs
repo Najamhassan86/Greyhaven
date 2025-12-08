@@ -64,6 +64,12 @@ namespace EJETAGame
                     Debug.Log($"[KeyItem] {keyName} successfully added to inventory!");
                 }
 
+                //Show message to player that item was added
+                if (InteractionText.instance != null)
+                {
+                    InteractionText.instance.SetText($"{keyName} added to inventory");
+                }
+
                 //Destroy or disable the key object
                 if (destroyOnPickup)
                 {

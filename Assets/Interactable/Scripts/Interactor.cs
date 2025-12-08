@@ -48,22 +48,7 @@ namespace EJETAGame
             //We send a ray to detect all objects;
             Ray r = new Ray(interactorSource.position, interactorSource.forward);
             
-            //Draw ray/sphere in Scene view for debugging
-            if (drawRayInScene)
-            {
-                if (useSphereCast)
-                {
-                    //Draw sphere cast as a capsule
-                    Vector3 start = interactorSource.position;
-                    Vector3 end = interactorSource.position + interactorSource.forward * interactRange;
-                    Debug.DrawLine(start, end, Color.red);
-                    //Note: Unity doesn't have built-in sphere visualization, but the line shows direction
-                }
-                else
-                {
-                    Debug.DrawRay(interactorSource.position, interactorSource.forward * interactRange, Color.red);
-                }
-            }
+            //Draw ray/sphere in Scene view for debugging (handled in OnDrawGizmos for better visualization)
             
             bool hitDetected = false;
             RaycastHit hitInfo;
@@ -332,6 +317,110 @@ namespace EJETAGame
                     holdTime = 0f;
                     holdTarget = null;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Draws Gizmos in Scene view to visualize the interaction detection
+        /// </summary>
+        private void OnDrawGizmos()
+        {
+            if (!drawRayInScene || interactorSource == null) return;
+
+            Vector3 startPos = interactorSource.position;
+            Vector3 direction = interactorSource.forward;
+            Vector3 endPos = startPos + direction * interactRange;
+
+            if (useSphereCast)
+            {
+                //Draw spherecast visualization
+                Gizmos.color = Color.yellow;
+                
+                //Draw start sphere
+                Gizmos.DrawWireSphere(startPos, sphereCastRadius);
+                
+                //Draw end sphere
+                Gizmos.DrawWireSphere(endPos, sphereCastRadius);
+                
+                //Draw lines connecting the spheres to show the cast volume
+                //Draw 4 lines around the sphere to create a capsule-like visualization
+                Vector3 right = Vector3.Cross(direction, Vector3.up).normalized;
+                if (right == Vector3.zero) right = Vector3.Cross(direction, Vector3.forward).normalized;
+                Vector3 up = Vector3.Cross(right, direction).normalized;
+                
+                //Top and bottom lines
+                Gizmos.DrawLine(startPos + up * sphereCastRadius, endPos + up * sphereCastRadius);
+                Gizmos.DrawLine(startPos - up * sphereCastRadius, endPos - up * sphereCastRadius);
+                
+                //Left and right lines
+                Gizmos.DrawLine(startPos + right * sphereCastRadius, endPos + right * sphereCastRadius);
+                Gizmos.DrawLine(startPos - right * sphereCastRadius, endPos - right * sphereCastRadius);
+                
+                //Draw center line
+                Gizmos.color = Color.red;
+                Gizmos.DrawLine(startPos, endPos);
+                
+                //Draw hit point if something was detected
+                if (detectedObject != null)
+                {
+                    Gizmos.color = Color.green;
+                    Ray r = new Ray(startPos, direction);
+                    RaycastHit hitInfo;
+                    if (Physics.SphereCast(r, sphereCastRadius, out hitInfo, interactRange))
+                    {
+                        //Draw sphere at hit point
+                        Gizmos.DrawWireSphere(hitInfo.point, sphereCastRadius * 0.5f);
+                        //Draw line to hit point
+                        Gizmos.DrawLine(startPos, hitInfo.point);
+                    }
+                }
+            }
+            else
+            {
+                //Draw regular raycast
+                Gizmos.color = Color.red;
+                Gizmos.DrawRay(startPos, direction * interactRange);
+                
+                //Draw hit point if something was detected
+                if (detectedObject != null)
+                {
+                    Gizmos.color = Color.green;
+                    Ray r = new Ray(startPos, direction);
+                    RaycastHit hitInfo;
+                    if (Physics.Raycast(r, out hitInfo, interactRange))
+                    {
+                        //Draw sphere at hit point
+                        Gizmos.DrawWireSphere(hitInfo.point, 0.1f);
+                        //Draw line to hit point
+                        Gizmos.DrawLine(startPos, hitInfo.point);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Draws Gizmos when selected in Scene view (more detailed)
+        /// </summary>
+        private void OnDrawGizmosSelected()
+        {
+            if (!drawRayInScene || interactorSource == null) return;
+
+            Vector3 startPos = interactorSource.position;
+            Vector3 direction = interactorSource.forward;
+            Vector3 endPos = startPos + direction * interactRange;
+
+            if (useSphereCast)
+            {
+                //Draw additional info when selected
+                Gizmos.color = new Color(1f, 1f, 0f, 0.3f); //Semi-transparent yellow
+                
+                //Draw filled spheres to show the cast volume better
+                Gizmos.DrawSphere(startPos, sphereCastRadius);
+                Gizmos.DrawSphere(endPos, sphereCastRadius);
+                
+                //Draw range indicator
+                Gizmos.color = Color.cyan;
+                Gizmos.DrawWireSphere(startPos, interactRange);
             }
         }
 

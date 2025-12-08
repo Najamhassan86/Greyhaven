@@ -27,7 +27,22 @@ namespace EJETAGame
         {
             if (instance != null && instance != this)
             {
+                //Editor-safe destruction to prevent Inspector errors
+                #if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        DestroyImmediate(this);
+                        return;
+                    }
+                    //Deselect if this object is selected in Inspector
+                    if (UnityEditor.Selection.activeGameObject == gameObject)
+                    {
+                        UnityEditor.Selection.activeGameObject = null;
+                    }
+                #endif
+                
                 Destroy(this);
+                return;
             }
             else
             {
@@ -81,25 +96,26 @@ namespace EJETAGame
                     
                     //Ensure the entire parent hierarchy is active before applying (cells need to be active to start coroutines)
                     //Activate Canvas -> InventoryPanel -> StandardStashView -> cells
+                    //BUT don't show the inventory UI - just add the item silently
                     Canvas canvas = stashView.GetComponentInParent<Canvas>(true); //includeInactive
                     GameObject inventoryPanel = stashView.transform.parent?.gameObject;
                     bool wasCanvasActive = canvas != null ? canvas.gameObject.activeSelf : true;
                     bool wasPanelActive = inventoryPanel != null ? inventoryPanel.activeSelf : true;
                     bool wasStashViewActive = stashView.gameObject.activeSelf;
                     
-                    //Activate Canvas if it exists and is inactive
+                    //Activate Canvas if it exists and is inactive (but keep it hidden from player)
                     if (canvas != null && !wasCanvasActive)
                     {
                         canvas.gameObject.SetActive(true);
                     }
                     
-                    //Activate parent panel if it exists and is inactive
+                    //Activate parent panel if it exists and is inactive (but keep it hidden from player)
                     if (inventoryPanel != null && !wasPanelActive)
                     {
                         inventoryPanel.SetActive(true);
                     }
                     
-                    //Activate stash view if inactive
+                    //Activate stash view if inactive (but keep it hidden from player)
                     if (!wasStashViewActive)
                     {
                         stashView.gameObject.SetActive(true);
@@ -186,15 +202,16 @@ namespace EJETAGame
             //Now apply - cells will be created as active
             view.Apply(data);
             
-            //Restore original states if we changed them (only if inventory is closed)
-            //Check if inventory is open by checking if panel is still active
-            if (inventoryPanel != null && !inventoryPanel.activeSelf)
+            //Restore original states - if we activated things, deactivate them now
+            //Only restore if they weren't active before (meaning inventory wasn't open)
+            if (!wasPanelActive)
             {
+                //We activated the panel to add item, now deactivate it
                 if (!wasStashViewActive)
                 {
                     view.gameObject.SetActive(false);
                 }
-                if (!wasPanelActive)
+                if (inventoryPanel != null)
                 {
                     inventoryPanel.SetActive(false);
                 }
@@ -203,6 +220,7 @@ namespace EJETAGame
                     canvas.gameObject.SetActive(false);
                 }
             }
+            //If panel was already active (wasPanelActive = true), inventory was open, so leave everything as is
         }
     }
 }

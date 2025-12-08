@@ -27,6 +27,21 @@ namespace EJETAGame
                     Debug.LogWarning($"[InteractionText] To fix permanently: Remove InteractionText component from '{gameObject.name}' GameObject in Inspector");
                     duplicateWarningShown = true; //Only show once
                 }
+                
+                //Editor-safe destruction to prevent Inspector errors
+                #if UNITY_EDITOR
+                    if (!Application.isPlaying)
+                    {
+                        DestroyImmediate(this);
+                        return;
+                    }
+                    //Deselect if this object is selected in Inspector
+                    if (UnityEditor.Selection.activeGameObject == gameObject)
+                    {
+                        UnityEditor.Selection.activeGameObject = null;
+                    }
+                #endif
+                
                 Destroy(this);
                 return; //Exit early to prevent further initialization
             }

@@ -332,19 +332,18 @@ namespace EJETAGame
                 //Now activate/deactivate the panel
                 inventoryPanel.SetActive(isInventoryOpen);
                 
-                //If closing inventory, always deactivate the Canvas (if it's the inventory Canvas)
-                if (!isInventoryOpen)
+                //If closing inventory, deactivate the Canvas
+                //Since we found the Canvas via GetComponentInParent, it's the inventory Canvas
+                if (!isInventoryOpen && canvas != null)
                 {
-                    if (canvas != null)
+                    //Always deactivate the inventory Canvas when closing
+                    //The canvasWasActivatedByUs check was preventing deactivation when Canvas was already active
+                    if (enableDebugLogs)
                     {
-                        //Always deactivate Canvas when closing inventory
-                        if (enableDebugLogs)
-                        {
-                            Debug.Log($"[InventoryUIManager] Deactivating Canvas '{canvas.gameObject.name}' (closing inventory)");
-                        }
-                        canvas.gameObject.SetActive(false);
-                        canvasWasActivatedByUs = false;
+                        Debug.Log($"[InventoryUIManager] Deactivating inventory Canvas '{canvas.gameObject.name}' (closing inventory)");
                     }
+                    canvas.gameObject.SetActive(false);
+                    canvasWasActivatedByUs = false;
                 }
                 
                 if (enableDebugLogs)

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace VariableInventorySystem
@@ -74,17 +74,62 @@ namespace VariableInventorySystem
                 {
                     currentImageAsset = CellData.ImageAsset;
 
+                    //Disable image while loading
                     cellImage.gameObject.SetActive(false);
+                    cellImage.texture = null; //Clear previous texture
+                    
                     if (Loader == null)
                     {
                         Loader = new StandardAssetLoader();
                     }
 
+                    string imagePath = (CellData.ImageAsset as StandardAsset)?.Path ?? "NULL";
+                    Debug.Log($"[StandardCell] Loading image for cell. Path: '{imagePath}'");
+
+                    //Check if GameObject is active before starting coroutine
+                    if (!gameObject.activeInHierarchy)
+                    {
+                        Debug.LogWarning($"[StandardCell] Cannot start coroutine - GameObject '{gameObject.name}' is inactive. Image will load when GameObject becomes active.");
+                        //Don't start coroutine if GameObject is inactive
+                        return;
+                    }
+
                     StartCoroutine(Loader.LoadAsync(CellData.ImageAsset, tex =>
                     {
-                        cellImage.texture = tex;
-                        cellImage.gameObject.SetActive(true);
+                        //Check if GameObject is still active when callback executes
+                        if (!gameObject.activeInHierarchy)
+                        {
+                            return; //Don't apply texture if GameObject is inactive
+                        }
+
+                        if (tex != null)
+                        {
+                            cellImage.texture = tex;
+                            cellImage.color = Color.white; //Ensure color is white (not tinted)
+                            cellImage.gameObject.SetActive(true);
+                            Debug.Log($"[StandardCell] ✓ Successfully loaded texture for cell. Texture size: {tex.width}x{tex.height}, Format: {tex.format}");
+                        }
+                        else
+                        {
+                            Debug.LogError($"[StandardCell] ✗ Failed to load texture for cell!");
+                            Debug.LogError($"[StandardCell] ImageAsset path: '{imagePath}'");
+                            Debug.LogError($"[StandardCell] Cell will show background color only. Check:");
+                            Debug.LogError($"[StandardCell]   1. File exists at Assets/Resources/{imagePath}.png");
+                            Debug.LogError($"[StandardCell]   2. Path is correct (no .png extension)");
+                            Debug.LogError($"[StandardCell]   3. Texture import settings allow loading");
+                            //Keep image disabled if texture failed to load - this prevents green/white color
+                            cellImage.gameObject.SetActive(false);
+                            cellImage.texture = null;
+                        }
                     }));
+                }
+                else if (cellImage.texture == null && cellImage.gameObject.activeSelf)
+                {
+                    //Image asset hasn't changed but texture is null - this shouldn't happen, but handle it
+                    Debug.LogWarning($"[StandardCell] Cell image is active but texture is null! Re-loading...");
+                    cellImage.gameObject.SetActive(false);
+                    //Trigger reload by resetting currentImageAsset
+                    currentImageAsset = null;
                 }
 
                 background.gameObject.SetActive(true && isSelectable);
@@ -96,6 +141,23 @@ namespace VariableInventorySystem
             sizeRoot.sizeDelta = GetRotateCellSize();
             target.sizeDelta = GetCellSize();
             target.localEulerAngles = Vector3.forward * (CellData?.IsRotate ?? false ? 90 : 0);
+        }
+
+        private void OnEnable()
+        {
+            //If cell becomes active and has data but no texture, reload the image
+            if (CellData != null && currentImageAsset == CellData.ImageAsset && 
+                (cellImage == null || cellImage.texture == null) && 
+                gameObject.activeInHierarchy)
+            {
+                //Reset currentImageAsset to trigger reload
+                currentImageAsset = null;
+                //Re-apply to load image
+                if (CellData != null)
+                {
+                    OnApply();
+                }
+            }
         }
     }
 }
