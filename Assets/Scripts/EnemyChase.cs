@@ -37,13 +37,11 @@ public class EnemyChase : MonoBehaviour
         float distance = toPlayer.magnitude;
 
         bool shouldChase = false;
-        bool shouldAttack = false;
 
         // Check if in attack distance
         if (distance <= attackDistance)
         {
             // Enemy is in attack range
-            shouldAttack = true;
             isAttacking = true;
             
             // Still rotate toward player when attacking

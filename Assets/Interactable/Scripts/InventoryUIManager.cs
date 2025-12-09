@@ -22,7 +22,6 @@ namespace EJETAGame
 
         private StandardStashViewData stashData;
         private bool isInventoryOpen = false;
-        private bool canvasWasActivatedByUs = false; //Track if we activated the Canvas
         private UnityEngine.EventSystems.EventSystem[] disabledEventSystems; //Track EventSystems we disabled
 
         private void Awake()
@@ -224,12 +223,7 @@ namespace EJETAGame
                         {
                             Debug.LogWarning($"[InventoryUIManager] Canvas '{canvas.gameObject.name}' is inactive! Activating it...");
                         }
-                        canvasWasActivatedByUs = true; //Remember we activated it
                         canvas.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        canvasWasActivatedByUs = false; //Canvas was already active
                     }
                     
                     //Check and activate all parent GameObjects up to Canvas
@@ -337,13 +331,11 @@ namespace EJETAGame
                 if (!isInventoryOpen && canvas != null)
                 {
                     //Always deactivate the inventory Canvas when closing
-                    //The canvasWasActivatedByUs check was preventing deactivation when Canvas was already active
                     if (enableDebugLogs)
                     {
                         Debug.Log($"[InventoryUIManager] Deactivating inventory Canvas '{canvas.gameObject.name}' (closing inventory)");
                     }
                     canvas.gameObject.SetActive(false);
-                    canvasWasActivatedByUs = false;
                 }
                 
                 if (enableDebugLogs)
