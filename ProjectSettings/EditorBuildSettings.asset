@@ -4,5 +4,30 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
+<<<<<<< HEAD
   m_Scenes: []
+=======
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/MainMenu.unity
+    guid: b8fde338b9712cf4aac6b38b1bfe732b
+  - enabled: 1
+    path: Assets/Scenes/Map_Hosp1.unity
+    guid: b6ca1756db6b14945b4116ce8880ae82
+  - enabled: 1
+    path: Assets/Scenes/CharacterSelect.unity
+    guid: ed204bf26c72d914f8638bfc205e3e7a
+  - enabled: 1
+    path: Assets/Scenes/GameOver.unity
+    guid: ca751596a70d1a741bfc835d303b6c00
+  - enabled: 1
+    path: Assets/Scenes/loading screen.unity
+    guid: d423cab49048b7a45836e614573508bc
+  - enabled: 1
+    path: Assets/Scenes/PauseScreen.unity
+    guid: 8053205755cc2fc4980e9bdacf602029
+  - enabled: 1
+    path: Assets/Scenes/WinScreen.unity
+    guid: b7753a1df506cc441a8fee664a742118
+>>>>>>> c10144e94e7d75cc910fb856a924cdbe2e3d48bc
   m_configObjects: {}
